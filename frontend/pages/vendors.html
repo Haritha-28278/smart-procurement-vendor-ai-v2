@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vendor Registry - Smart Procurement Vendor AI</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div class="brand-text">
+          <h5>SmartProcure AI</h5>
+          <span>Vendor Intelligence</span>
+        </div>
+      </div>
+
+      <ul class="sidebar-nav">
+        <li class="nav-category">Main Workspace</li>
+        <li class="nav-item">
+          <a href="/pages/dashboard.html" class="nav-link">
+            <i class="bi bi-grid-1x2-fill"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/pages/vendors.html" class="nav-link active">
+            <i class="bi bi-building"></i>
+            <span>Vendor Registry</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/pages/rfq.html" class="nav-link">
+            <i class="bi bi-file-earmark-text"></i>
+            <span>RFQs & AI Match</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/pages/compare.html" class="nav-link">
+            <i class="bi bi-columns-gap"></i>
+            <span>Vendor Comparison</span>
+          </a>
+        </li>
+      </ul>
+
+      <!-- User Info & Logout -->
+      <div class="sidebar-footer">
+        <div class="user-snippet mb-3">
+          <div id="sidebar-user-avatar" class="user-avatar">--</div>
+          <div class="text-truncate">
+            <div id="sidebar-user-name" class="fw-semibold text-white small text-truncate">User</div>
+            <div id="sidebar-user-role" class="text-muted" style="font-size: 0.72rem;">Role</div>
+          </div>
+        </div>
+        <button onclick="api.auth.logout()" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-box-arrow-right"></i>
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-wrapper">
+      <!-- Top Navbar -->
+      <header class="top-navbar">
+        <div class="page-title">
+          <h3>Supplier & Vendor Registry</h3>
+          <p>Comprehensive repository of certified vendors, past performance SLAs, and ratings</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-primary btn-sm d-flex align-items-center gap-2" onclick="openAddVendorModal()">
+            <i class="bi bi-plus-lg"></i>
+            <span>Add Supplier</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-container">
+        <!-- Search & Filter Bar -->
+        <div class="table-card p-3 mb-4">
+          <div class="row g-3 align-items-center">
+            <div class="col-md-6 col-lg-7">
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                <input type="text" id="vendorSearchInput" class="form-control border-start-0" placeholder="Search suppliers by name, category, location, certifications...">
+              </div>
+            </div>
+            <div class="col-md-4 col-lg-3">
+              <select id="vendorCategoryFilter" class="form-select">
+                <option value="All">All Categories</option>
+              </select>
+            </div>
+            <div class="col-md-2 col-lg-2 text-end">
+              <button class="btn btn-outline-secondary w-100" onclick="resetFilters()">
+                <i class="bi bi-arrow-clockwise me-1"></i> Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vendors Data Table -->
+        <div class="table-card">
+          <div class="card-header">
+            <div class="d-flex align-items-center gap-2">
+              <h6 class="fw-bold mb-0">Verified Vendors</h6>
+              <span id="vendorCountBadge" class="badge bg-primary-subtle text-primary border border-primary-subtle">0 registered</span>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-modern align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Vendor Organization</th>
+                  <th>Category</th>
+                  <th>Pricing Tier</th>
+                  <th>Performance SLA</th>
+                  <th>Location</th>
+                  <th>Certifications</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="vendorsTableBody">
+                <tr>
+                  <td colspan="7" class="text-center py-5 text-muted">
+                    <span class="spinner-border spinner-border-sm me-2"></span>Loading vendor registry...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal: Add / Edit Vendor -->
+  <div class="modal fade" id="vendorModal" tabindex="-1" aria-labelledby="vendorModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title fw-bold" id="vendorModalTitle"><i class="bi bi-building-add text-primary me-2"></i>Register New Supplier</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="vendorForm">
+          <div class="modal-body p-4">
+            <input type="hidden" id="vendorFormId">
+            <div class="row g-3">
+              <div class="col-md-8">
+                <label class="form-label small fw-semibold">Company / Vendor Name *</label>
+                <input type="text" id="vName" class="form-control" placeholder="e.g. Sterling Industrial Supplies" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Pricing Tier *</label>
+                <select id="vPricing" class="form-select" required>
+                  <option value="Budget">Budget</option>
+                  <option value="Moderate" selected>Moderate</option>
+                  <option value="Premium">Premium</option>
+                  <option value="Enterprise">Enterprise</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Industry Category *</label>
+                <input type="text" id="vCategory" class="form-control" placeholder="e.g. IT & Cybersecurity, Logistics" required list="categoryDatalist">
+                <datalist id="categoryDatalist">
+                  <option value="IT & Cybersecurity">
+                  <option value="Logistics & Supply Chain">
+                  <option value="Packaging & Raw Materials">
+                  <option value="Industrial Machinery">
+                  <option value="Facilities & Maintenance">
+                </datalist>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Headquarters Location *</label>
+                <input type="text" id="vLocation" class="form-control" placeholder="City, State / Country" required>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Performance Rating (0.0 - 5.0)</label>
+                <input type="number" step="0.05" min="1.0" max="5.0" id="vRating" class="form-control" value="4.50" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Contact Email</label>
+                <input type="email" id="vEmail" class="form-control" placeholder="procurement@vendor.com">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Contact Phone</label>
+                <input type="text" id="vPhone" class="form-control" placeholder="+1 (555) 000-0000">
+              </div>
+
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Website URL</label>
+                <input type="url" id="vWebsite" class="form-control" placeholder="https://example.com">
+              </div>
+
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Certifications & Accreditations</label>
+                <input type="text" id="vCertifications" class="form-control" placeholder="e.g. ISO 9001, SOC 2 Type II, C-TPAT, FedRAMP, OSHA">
+                <div class="form-text">Comma-separated credentials evaluated by Claude AI for compliance matching.</div>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Past Performance Record & SLA History</label>
+                <textarea id="vPastPerformance" class="form-control" rows="3" placeholder="Describe historical delivery reliability, incident rates, key enterprise client references..."></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" id="saveVendorBtn" class="btn btn-primary d-flex align-items-center gap-2">
+              <i class="bi bi-check-lg"></i>
+              <span>Save Vendor</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: View Vendor Details -->
+  <div class="modal fade" id="vendorDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title fw-bold" id="detailVendorName">Vendor Dossier</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4" id="vendorDetailContent">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- API Client JS -->
+  <script src="/js/api.js"></script>
+  <!-- Vendors JS -->
+  <script src="/js/vendors.js"></script>
+</body>
+</html>

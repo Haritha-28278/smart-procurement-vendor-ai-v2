@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vendor Comparison - Smart Procurement Vendor AI</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div class="brand-text">
+          <h5>SmartProcure AI</h5>
+          <span>Vendor Intelligence</span>
+        </div>
+      </div>
+
+      <ul class="sidebar-nav">
+        <li class="nav-category">Main Workspace</li>
+        <li class="nav-item">
+          <a href="/pages/dashboard.html" class="nav-link">
+            <i class="bi bi-grid-1x2-fill"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/pages/vendors.html" class="nav-link">
+            <i class="bi bi-building"></i>
+            <span>Vendor Registry</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/pages/rfq.html" class="nav-link">
+            <i class="bi bi-file-earmark-text"></i>
+            <span>RFQs & AI Match</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/pages/compare.html" class="nav-link active">
+            <i class="bi bi-columns-gap"></i>
+            <span>Vendor Comparison</span>
+          </a>
+        </li>
+      </ul>
+
+      <!-- User Info & Logout -->
+      <div class="sidebar-footer">
+        <div class="user-snippet mb-3">
+          <div id="sidebar-user-avatar" class="user-avatar">--</div>
+          <div class="text-truncate">
+            <div id="sidebar-user-name" class="fw-semibold text-white small text-truncate">User</div>
+            <div id="sidebar-user-role" class="text-muted" style="font-size: 0.72rem;">Role</div>
+          </div>
+        </div>
+        <button onclick="api.auth.logout()" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-box-arrow-right"></i>
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-wrapper">
+      <!-- Top Navbar -->
+      <header class="top-navbar">
+        <div class="page-title">
+          <h3>Side-by-Side Vendor Evaluation</h3>
+          <p>Multi-vendor comparative synthesis, risk assessment, and Claude AI recommendation</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge ai-badge"><i class="bi bi-stars"></i> Claude AI Synthesis</span>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-container">
+        <!-- RFQ Selection Bar -->
+        <div class="table-card p-3 mb-4">
+          <div class="row g-3 align-items-center">
+            <div class="col-md-6 col-lg-7">
+              <label class="small fw-semibold text-muted mb-1">Select RFQ for Comparative Analysis:</label>
+              <select id="compareRfqSelect" class="form-select fw-semibold text-dark">
+                <option value="">Loading RFQs...</option>
+              </select>
+            </div>
+            <div class="col-md-6 col-lg-5 text-md-end pt-md-4">
+              <button id="reanalyzeBtn" class="btn btn-outline-primary d-inline-flex align-items-center gap-2" onclick="reloadComparison()">
+                <i class="bi bi-arrow-repeat"></i>
+                <span>Refresh Claude Synthesis</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Claude Executive Summary Card -->
+        <div id="executiveSummaryCard" class="stat-card ai-card-glow mb-4" style="display: none;">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge ai-badge"><i class="bi bi-robot"></i> Executive Recommendation</span>
+              <h5 class="fw-bold mb-0 text-dark">Claude AI Synthesis & Decision Matrix</h5>
+            </div>
+            <span id="winnerBadge" class="badge bg-purple text-white px-3 py-1" style="background-color: #8b5cf6;">Optimal Match Identified</span>
+          </div>
+
+          <p id="summaryText" class="text-secondary mt-2 mb-3" style="line-height: 1.65; font-size: 0.95rem;"></p>
+
+          <div class="p-3 bg-white rounded-3 border">
+            <div class="small fw-bold text-dark text-uppercase tracking-wider mb-1"><i class="bi bi-bullseye text-primary me-1"></i> Selection Rationale</div>
+            <div id="recommendationReason" class="text-muted small"></div>
+          </div>
+        </div>
+
+        <!-- Loading Spinner for Comparison -->
+        <div id="compareLoader" class="ai-loader" style="display: none;">
+          <div class="ai-pulse-spinner mb-3">
+            <i class="bi bi-columns-gap"></i>
+          </div>
+          <h5 class="fw-bold text-dark mb-1">Building Side-by-Side Comparison Matrix...</h5>
+          <p class="text-muted small text-center" style="max-width: 480px;">
+            Synthesizing technical qualifications, unit pricing variance, SLA reliability scores, and contract risk flags.
+          </p>
+        </div>
+
+        <!-- Side-by-Side Comparison Container -->
+        <div id="comparisonContainer" class="table-card p-4">
+          <div id="comparisonGrid" class="row g-4">
+            <div class="col-12 text-center py-5 text-muted">
+              Select an RFQ above to begin comparative evaluation.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- API Client JS -->
+  <script src="/js/api.js"></script>
+  <!-- Compare JS -->
+  <script src="/js/compare.js"></script>
+</body>
+</html>
